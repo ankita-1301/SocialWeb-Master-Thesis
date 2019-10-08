@@ -1,0 +1,14 @@
+fabric-ca-server:
+   image: hyperledger/fabric-ca:amd64-1.4.0
+   container_name: fabric-ca-server
+   ports:
+     - "7054:7054"
+   environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.ptunstad.no
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org1.ptunstad.no-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/da428353a207abde2d43317950bd81e87de49ddea30053e42a4bc015222576cd_sk
+   volumes:
+     - ../crypto-config/peerOrganizations/org1.ptunstad.no/ca/:/etc/hyperledger/fabric-ca-server-config
+     - ./fabric-ca-server:/etc/hyperledger/fabric-ca-server
+   command: sh -c 'fabric-ca-server start -b admin:adminpw'

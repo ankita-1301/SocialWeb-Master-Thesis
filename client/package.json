@@ -1,0 +1,27 @@
+{
+    "name": "Sociamedia",
+    "version": "1.0.0",
+    "description": "SocialMedia HLF Example Applications",
+    "main": "benchmark.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "body-parser": "^1.18.3",
+        "express": "^4.16.4",
+        "fabric-ca-client": "1.3",
+        "fabric-client": "1.3",
+        "glob": "^7.1.3",
+        "grpc": "^1.18.0",
+        "socialmedia-client": "file:socialmedia-client",
+        "inquirer": "^6.2.2"
+    },
+    "author": "Ankita Shah Ashwin",
+    "keywords": [
+        "Hyperledger",
+        "Fabric",
+        "SocialMedia",
+        "Ankita Ashwin Shah",
+        "Master Thesis"
+    ]
+}

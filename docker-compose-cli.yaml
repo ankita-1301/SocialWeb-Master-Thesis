@@ -1,0 +1,553 @@
+# Docker-compose file for SocialMedia HLFv1.4 experiments by Ankita Shah Ashwin, 14.09.19
+#
+# Derived from code, original version for HLFv1.0, Copyright Joe Motacek All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+#Disclaimer: This compose file uses the complete path /home/ubuntu/SocialMedia
+#For any other location, this must be replaced in this compose file.
+
+version: '3'
+
+volumes:
+  orderer.ptunstad.no:
+  peer0.org1.ptunstad.no:
+  peer1.org1.ptunstad.no:
+  peer2.org1.ptunstad.no:
+  peer3.org1.ptunstad.no:
+  peer4.org1.ptunstad.no:
+  peer5.org1.ptunstad.no:
+  peer6.org1.ptunstad.no:
+  peer7.org1.ptunstad.no:
+  peer0.org2.ptunstad.no:
+  peer1.org2.ptunstad.no:
+
+services:
+  orderer:
+    image: ptunstad/fabric-orderer:arm64-1.4.1
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=false
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    hostname: orderer.ptunstad.no
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - orderer.ptunstad.no
+    volumes:
+      - /home/ubuntu/SocialMedia/channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - /home/ubuntu/SocialMedia/crypto-config/ordererOrganizations/ptunstad.no/orderers/orderer.ptunstad.no/msp:/var/hyperledger/orderer/msp
+      - /home/ubuntu/SocialMedia/crypto-config/ordererOrganizations/ptunstad.no/orderers/orderer.ptunstad.no/tls/:/var/hyperledger/orderer/tls
+    ports:
+      - 7050:7050
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 113
+    command: orderer
+
+  peer0_org1:
+    image: ptunstad/fabric-peer:arm64-1.4.1
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledger-fabric
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_ID=peer0.org1.ptunstad.no
+      - CORE_PEER_ADDRESS=peer0.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.ptunstad.no:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    hostname: peer0.org1.ptunstad.no
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - peer0.org1.ptunstad.no
+    volumes:
+      - /var/run/:/host/var/run/
+      - /home/ubuntu/SocialMedia/logs:/home/logs
+      - /home/ubuntu/SocialMedia/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/core/chaincode/
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer0.org1.ptunstad.no/msp:/etc/hyperledger/fabric/msp
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer0.org1.ptunstad.no/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 7051:7051
+      - 7053:7053
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 113
+    command: bash -c "peer node start"
+
+  peer1_org1:
+    image: ptunstad/fabric-peer:arm64-1.4.1
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledger-fabric
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_ID=peer1.org1.ptunstad.no
+      - CORE_PEER_ADDRESS=peer1.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org1.ptunstad.no:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    hostname: peer1.org1.ptunstad.no
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - peer1.org1.ptunstad.no
+    volumes:
+      - /var/run/:/host/var/run/
+      - /home/ubuntu/SocialMedia/logs:/home/logs
+      - /home/ubuntu/SocialMedia/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/core/chaincode/
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer1.org1.ptunstad.no/msp:/etc/hyperledger/fabric/msp
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer1.org1.ptunstad.no/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 8051:7051
+      - 8053:7053
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 114
+    command: bash -c "peer node start"
+
+  peer2_org1:
+    image: ptunstad/fabric-peer:arm64-1.4.1
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledger-fabric
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_ID=peer2.org1.ptunstad.no
+      - CORE_PEER_ADDRESS=peer2.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer2.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer2.org1.ptunstad.no:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    hostname: peer2.org1.ptunstad.no
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - peer2.org1.ptunstad.no
+    volumes:
+      - /var/run/:/host/var/run/
+      - /home/ubuntu/SocialMedia/logs:/home/logs
+      - /home/ubuntu/SocialMedia/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/core/chaincode/
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer2.org1.ptunstad.no/msp:/etc/hyperledger/fabric/msp
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer2.org1.ptunstad.no/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 9051:7051
+      - 9053:7053
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 115
+    command: bash -c "peer node start"
+
+  peer3_org1:
+    image: ptunstad/fabric-peer:arm64-1.4.1
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledger-fabric
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_ID=peer3.org1.ptunstad.no
+      - CORE_PEER_ADDRESS=peer3.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer3.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer3.org1.ptunstad.no:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    hostname: peer3.org1.ptunstad.no
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - peer3.org1.ptunstad.no
+    volumes:
+      - /home/ubuntu/SocialMedia/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/core/chaincode/
+      - /var/run/:/host/var/run/
+      - /home/ubuntu/SocialMedia/logs:/home/logs
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer3.org1.ptunstad.no/msp:/etc/hyperledger/fabric/msp
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer3.org1.ptunstad.no/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 10051:7051
+      - 10053:7053
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 116
+    command: bash -c "peer node start"
+
+  peer4_org1:
+    image: ptunstad/fabric-peer:arm64-1.4.1
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledger-fabric
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_ID=peer4.org1.ptunstad.no
+      - CORE_PEER_ADDRESS=peer4.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer4.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer4.org1.ptunstad.no:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    hostname: peer4.org1.ptunstad.no
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - peer4.org1.ptunstad.no
+    volumes:
+      - /home/ubuntu/SocialMedia/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/core/chaincode/
+      - /var/run/:/host/var/run/
+      - /home/ubuntu/SocialMedia/logs:/home/logs
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer4.org1.ptunstad.no/msp:/etc/hyperledger/fabric/msp
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer4.org1.ptunstad.no/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 7051:7051
+      - 7053:7053
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 117
+    command: bash -c "peer node start"
+
+  peer5_org1:
+    image: ptunstad/fabric-peer:arm64-1.4.1
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledger-fabric
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_ID=peer5.org1.ptunstad.no
+      - CORE_PEER_ADDRESS=peer5.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer5.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer5.org1.ptunstad.no:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    hostname: peer5.org1.ptunstad.no
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - peer5.org1.ptunstad.no
+    volumes:
+      - /home/ubuntu/SocialMedia/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/core/chaincode/
+      - /var/run/:/host/var/run/
+      - /home/ubuntu/SocialMedia/logs:/home/logs
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer5.org1.ptunstad.no/msp:/etc/hyperledger/fabric/msp
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer5.org1.ptunstad.no/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 7051:7051
+      - 7053:7053
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 118
+    command: bash -c "peer node start"
+
+  peer6_org1:
+    image: ptunstad/fabric-peer:arm64-1.4.1
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledger-fabric
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_ID=peer6.org1.ptunstad.no
+      - CORE_PEER_ADDRESS=peer6.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer6.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer6.org1.ptunstad.no:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    hostname: peer6.org1.ptunstad.no
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - peer6.org1.ptunstad.no
+    volumes:
+      - /home/ubuntu/SocialMedia/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/core/chaincode/
+      - /var/run/:/host/var/run/
+      - /home/ubuntu/SocialMedia/logs:/home/logs
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer6.org1.ptunstad.no/msp:/etc/hyperledger/fabric/msp
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer6.org1.ptunstad.no/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 7051:7051
+      - 7053:7053
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 119
+    command: bash -c "peer node start"
+
+  peer7_org1:
+    image: ptunstad/fabric-peer:arm64-1.4.1
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledger-fabric
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_ID=peer7.org1.ptunstad.no
+      - CORE_PEER_ADDRESS=peer7.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer7.org1.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer7.org1.ptunstad.no:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    hostname: peer7.org1.ptunstad.no
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - peer7.org1.ptunstad.no
+    volumes:
+      - /home/ubuntu/SocialMedia/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/core/chaincode/
+      - /var/run/:/host/var/run/
+      - /home/ubuntu/SocialMedia/logs:/home/logs
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer7.org1.ptunstad.no/msp:/etc/hyperledger/fabric/msp
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer7.org1.ptunstad.no/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 7051:7051
+      - 7053:7053
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 120
+    command: bash -c "peer node start"
+
+  peer0_org2:
+    image: ptunstad/fabric-peer:arm64-1.4.1
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledger-fabric
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_ID=peer0.org2.ptunstad.no
+      - CORE_PEER_ADDRESS=peer0.org2.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org2.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org2.ptunstad.no:7051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    hostname: peer0.org2.ptunstad.no
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - peer0.org2.ptunstad.no
+    volumes:
+      - /home/ubuntu/SocialMedia/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/core/chaincode/
+      - /var/run/:/host/var/run/
+      - /home/ubuntu/SocialMedia/logs:/home/logs
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer0.org2.ptunstad.no/msp:/etc/hyperledger/fabric/msp
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer0.org2.ptunstad.no/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 7051:7051
+      - 7053:7053
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 121
+    command: bash -c "peer node start"
+
+  peer1_org2:
+    image: ptunstad/fabric-peer:arm64-1.4.1
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledger-fabric
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_ID=peer1.org2.ptunstad.no
+      - CORE_PEER_ADDRESS=peer1.org2.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org2.ptunstad.no:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.org2.ptunstad.no:7051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR_RUNTIME=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    hostname: peer1.org2.ptunstad.no
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - peer1.org2.ptunstad.no
+    volumes:
+      - /home/ubuntu/SocialMedia/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/core/chaincode/
+      - /var/run/:/host/var/run/
+      - /home/ubuntu/SocialMedia/logs:/home/logs
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer1.org2.ptunstad.no/msp:/etc/hyperledger/fabric/msp
+      - /home/ubuntu/SocialMedia/crypto-config/peerOrganizations/org1.ptunstad.no/peers/peer1.org2.ptunstad.no/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 7051:7051
+      - 7053:7053
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 122
+    command: bash -c "peer node start"
+
+  cli:
+    image: ptunstad/fabric-tools:arm64-1.4.1
+    tty: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer0.org1.ptunstad.no:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.ptunstad.no/peers/peer0.org1.ptunstad.no/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.ptunstad.no/peers/peer0.org1.ptunstad.no/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.ptunstad.no/peers/peer0.org1.ptunstad.no/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.ptunstad.no/users/Admin@org1.ptunstad.no/msp
+      - CORE_VM_DOCKER_HOSTCONFIG_MEMORY=536870912
+      - CORE_CHAINCODE_BUILDER=ptunstad/fabric-ccenv:arm64-1.4.1
+      - CORE_CHAINCODE_GOLANG=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_CAR=ptunstad/fabric-baseos:arm64-0.4.15
+      - CORE_CHAINCODE_JAVA=apelser/fabric-javaenv:arm64-1.4.1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash -c 'sleep 30; ./scripts/initializer.sh; while true; do sleep 20170504; done'
+    volumes:
+      - /var/run/:/host/var/run/
+      - /home/ubuntu/SocialMedia/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/core/chaincode/
+      - /home/ubuntu/SocialMedia/crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+      - /home/ubuntu/SocialMedia/scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+      - /home/ubuntu/SocialMedia/channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer
+      - peer0_org1
+      - peer1_org1
+      - peer2_org1
+      - peer3_org1
+      - peer4_org1
+      - peer5_org1
+      - peer6_org1
+      - peer7_org1
+      - peer0_org2
+      - peer1_org2
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == 113
+    networks:
+      hyperledger-fabric:
+        aliases:
+          - cli.ptunstad.no
+
+networks:
+  hyperledger-fabric:
+    external: true
